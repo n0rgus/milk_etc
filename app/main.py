@@ -10,13 +10,25 @@ if sys.platform.startswith("win"):
 from datetime import date, datetime
 from typing import Optional, Dict, Any, List, Tuple
 
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy.orm import joinedload
+
+from fastapi import FastAPI, Request, Form, Body
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .db import SessionLocal, init_db
-from .models import Item, Store, StoreLink, PriceHistory, ShopSession, ShopPurchase
+from .models import (
+    Item,
+    Store,
+    StoreLink,
+    PriceHistory,
+    ShopSession,
+    ShopPurchase,
+    CaptureRun,
+    CaptureRunItem,
+)
 from .scrape import scrape_item_prices
 from .services import (
     get_latest_prices_for_items,
@@ -29,6 +41,16 @@ from .services import (
 APP_TITLE = "Grocery PriceWatch"
 
 app = FastAPI(title=APP_TITLE)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "..", "templates"))
 
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
@@ -245,6 +267,111 @@ def scrape_now(store: str = Form("ALL")):
     finally:
         db.close()
 
+
+
+
+def _get_store(db, store_name: str) -> Store:
+    return db.query(Store).filter(Store.name == store_name).one()
+
+
+def _ensure_capture_run(db, store_name: str) -> CaptureRun:
+    from datetime import timedelta
+
+    cutoff = datetime.utcnow() - timedelta(hours=6)
+    run = (
+        db.query(CaptureRun)
+        .filter(CaptureRun.store == store_name)
+        .filter(CaptureRun.started_at >= cutoff)
+        .order_by(CaptureRun.id.desc())
+        .first()
+    )
+    if run:
+        return run
+    run = CaptureRun(store=store_name, started_at=datetime.utcnow())
+    db.add(run)
+    db.commit()
+    db.refresh(run)
+    return run
+
+
+@app.get("/api/next")
+def api_next(store: str):
+    store = store.strip().upper()
+    db = SessionLocal()
+    try:
+        st = _get_store(db, store)
+        run = _ensure_capture_run(db, store)
+
+        subq = (
+            db.query(CaptureRunItem.item_id)
+            .filter(CaptureRunItem.capture_run_id == run.id)
+            .filter(CaptureRunItem.store_id == st.id)
+            .subquery()
+        )
+
+        link = (
+            db.query(StoreLink)
+            .options(joinedload(StoreLink.item))
+            .filter(StoreLink.store_id == st.id)
+            .filter(StoreLink.url.isnot(None))
+            .filter(StoreLink.url != "")
+            .filter(~StoreLink.item_id.in_(subq))
+            .order_by(StoreLink.item_id.asc())
+            .first()
+        )
+
+        if not link:
+            return JSONResponse({"done": True})
+
+        return {
+            "done": False,
+            "capture_run_id": run.id,
+            "store": store,
+            "item_id": link.item_id,
+            "item_name": link.item.name if link.item else None,
+            "url": link.url,
+        }
+    finally:
+        db.close()
+
+
+@app.post("/api/capture")
+def api_capture(payload: dict = Body(...)):
+    db = SessionLocal()
+    try:
+        store = str(payload.get("store", "")).strip().upper()
+        capture_run_id = int(payload.get("capture_run_id"))
+        item_id = int(payload.get("item_id"))
+
+        st = _get_store(db, store)
+
+        ph = PriceHistory(
+            item_id=item_id,
+            store_id=st.id,
+            captured_at=datetime.utcnow(),
+            price=float(payload["price"]) if payload.get("price") is not None else None,
+            was_price=float(payload["was_price"]) if payload.get("was_price") is not None else None,
+            unit_price=float(payload["unit_price"]) if payload.get("unit_price") is not None else None,
+            promo_text=(payload.get("promo_text") or None),
+            discount_percent=None,
+        )
+        if ph.price is not None and ph.was_price is not None and ph.was_price > 0 and ph.was_price > ph.price:
+            ph.discount_percent = round((ph.was_price - ph.price) / ph.was_price * 100.0, 1)
+
+        db.add(ph)
+        db.add(
+            CaptureRunItem(
+                capture_run_id=capture_run_id,
+                item_id=item_id,
+                store_id=st.id,
+                captured_at=datetime.utcnow(),
+            )
+        )
+
+        db.commit()
+        return {"ok": True}
+    finally:
+        db.close()
 
 @app.get("/buylist", response_class=HTMLResponse)
 def buylist(request: Request):
