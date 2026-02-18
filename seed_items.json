@@ -1,0 +1,814 @@
+[
+  {
+    "name": "Alfalfa Sprouts",
+    "category": "Produce",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Alfalfa Sprouts",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Apples",
+    "category": "Produce",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 0.5,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Apples",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Avocados",
+    "category": "Produce",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 2.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Avocados",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Bananas",
+    "category": "Produce",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Bananas",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Oranges",
+    "category": "Produce",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 0.5,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Oranges",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Potatoes",
+    "category": "Produce",
+    "brand": null,
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Potatoes",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Tomatoes",
+    "category": "Produce",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 0.3,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Tomatoes",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Bagels",
+    "category": "Bakery",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Bagels",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Bread - White Sourdough",
+    "category": "Bakery",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 2.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Bread - White Sourdough",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Coffee Syrup",
+    "category": "Cordials & Milk Additives",
+    "brand": "Bickford's",
+    "buy_freq": "Fortnightly",
+    "buy_qty": 3.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Coffee Syrup",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Cordial - Blackcurrent",
+    "category": "Cordials & Milk Additives",
+    "brand": "Bickford's",
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Cordial - Blackcurrent",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Drinking Chocolate",
+    "category": "Cordials & Milk Additives",
+    "brand": null,
+    "buy_freq": "Bi-Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Drinking Chocolate",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Drinking Chocolate",
+    "category": "Cordials & Milk Additives",
+    "brand": "Avalanche",
+    "buy_freq": "Bi-Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Drinking Chocolate",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Milo",
+    "category": "Cordials & Milk Additives",
+    "brand": null,
+    "buy_freq": "Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Milo",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Milo - Aldi",
+    "category": "Cordials & Milk Additives",
+    "brand": null,
+    "buy_freq": "Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Milo - Aldi",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Flushable Wipes",
+    "category": "Health & Personal Cate",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 2.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Flushable Wipes",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Tissues",
+    "category": "Health & Personal Cate",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Tissues",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Toilet Paper",
+    "category": "Health & Personal Cate",
+    "brand": null,
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Amazon",
+    "stores": {
+      "ALDI": {
+        "label": "Toilet Paper",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Twisties - Chicken",
+    "category": "Snacks",
+    "brand": "Twisties",
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Twisties - Chicken",
+        "url": ""
+      },
+      "COLES": {
+        "label": "Twisties - Chicken",
+        "url": ""
+      },
+      "WOOLWORTHS": {
+        "label": "Twisties - Chicken",
+        "url": ""
+      }
+    }
+  },
+  {
+    "name": "Chocolate - Block",
+    "category": "Snacks",
+    "brand": "Milka",
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Woolworths",
+    "stores": {
+      "ALDI": null,
+      "COLES": null,
+      "WOOLWORTHS": {
+        "label": "Chocolate - Block",
+        "url": ""
+      }
+    }
+  },
+  {
+    "name": "Chocolate - Fun Size",
+    "category": "Snacks",
+    "brand": "[Various]",
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Chocolate - Fun Size",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Crackers - Plain",
+    "category": "Snacks",
+    "brand": "Savoy",
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Crackers - Plain",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Noodle Cups",
+    "category": "Snacks",
+    "brand": "Maggi",
+    "buy_freq": "Fortnightly",
+    "buy_qty": 3.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Noodle Cups",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Shapes",
+    "category": "Snacks",
+    "brand": "Arnotts",
+    "buy_freq": "Weekly",
+    "buy_qty": 2.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Shapes",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Fruit Juice",
+    "category": "Beverages",
+    "brand": "[Various]",
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Fruit Juice",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Fruit Juice - Mango Nectar",
+    "category": "Beverages",
+    "brand": "Golden Circle",
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Fruit Juice - Mango Nectar",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Milk - Almond",
+    "category": "Beverages",
+    "brand": "Vitasoy",
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Milk - Almond",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Chunky Soups",
+    "category": "Soups & Canned Goods",
+    "brand": null,
+    "buy_freq": "Fortnightly",
+    "buy_qty": 2.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Chunky Soups",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Tuna - Tomatoe & Basil",
+    "category": "Soups & Canned Goods",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 4.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Tuna - Tomatoe & Basil",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Sauce - BBQ",
+    "category": "Condiments & Dressings",
+    "brand": null,
+    "buy_freq": "Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Sauce - BBQ",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Eggs",
+    "category": "Cooking & Baking",
+    "brand": null,
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Eggs",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Dishwashing Liquid",
+    "category": "Household & Cleaning",
+    "brand": null,
+    "buy_freq": "Bi-Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Dishwashing Liquid",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Dishwashing Powder",
+    "category": "Household & Cleaning",
+    "brand": null,
+    "buy_freq": "Bi-Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Dishwashing Powder",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Laundry Powder",
+    "category": "Household & Cleaning",
+    "brand": null,
+    "buy_freq": "Bi-Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Laundry Powder",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Laundy Spray",
+    "category": "Household & Cleaning",
+    "brand": null,
+    "buy_freq": "Bi-Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Laundy Spray",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Rinse Aid",
+    "category": "Household & Cleaning",
+    "brand": null,
+    "buy_freq": "Bi-Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Rinse Aid",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Kitten Milk",
+    "category": "Pet Supplies",
+    "brand": "Whiskas",
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Kitten Milk",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Noodle Bowl - Red Coconut Curry",
+    "category": "Ready Meals",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Noodle Bowl - Red Coconut Curry",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Ramyeon Noodles",
+    "category": "Ready Meals",
+    "brand": "Shin",
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Ramyeon Noodles",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Bacon",
+    "category": "Chiller",
+    "brand": "Bertocchi",
+    "buy_freq": "Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Bacon",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Salmon - Smoked",
+    "category": "Chiller",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Salmon - Smoked",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Soup - Chicken & Corn",
+    "category": "Chiller",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Soup - Chicken & Corn",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Dim Sims",
+    "category": "Frozen Foods",
+    "brand": "Marathon",
+    "buy_freq": "Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Dim Sims",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Fish Fingers",
+    "category": "Frozen Foods",
+    "brand": "BirdsEye",
+    "buy_freq": "Bi-Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Fish Fingers",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Meat Pies",
+    "category": "Frozen Foods",
+    "brand": null,
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Meat Pies",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Cheese - Parmesan",
+    "category": "Dairy",
+    "brand": null,
+    "buy_freq": "Monthly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Cheese - Parmesan",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Cream Cheese",
+    "category": "Dairy",
+    "brand": null,
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Cream Cheese",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Milk",
+    "category": "Dairy",
+    "brand": null,
+    "buy_freq": "Weekly",
+    "buy_qty": 3.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Milk",
+        "url": ""
+      },
+      "COLES": {
+        "label": "Milk",
+        "url": ""
+      },
+      "WOOLWORTHS": {
+        "label": "Milk",
+        "url": ""
+      }
+    }
+  },
+  {
+    "name": "Yoghurt - Individual",
+    "category": "Dairy",
+    "brand": null,
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Aldi",
+    "stores": {
+      "ALDI": {
+        "label": "Yoghurt - Individual",
+        "url": ""
+      },
+      "COLES": null,
+      "WOOLWORTHS": null
+    }
+  },
+  {
+    "name": "Yoghurt - Plain Greek",
+    "category": "Dairy",
+    "brand": "Chobani",
+    "buy_freq": "Fortnightly",
+    "buy_qty": 1.0,
+    "preferred_store": "Coles",
+    "stores": {
+      "ALDI": null,
+      "COLES": {
+        "label": "Yoghurt - Plain Greek",
+        "url": ""
+      },
+      "WOOLWORTHS": null
+    }
+  }
+]

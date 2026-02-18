@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-semibold">{{ title }}</div>
+  <div class="card-body">
+    <form method="post" action="{% if item %}/items/{{ item.id }}{% else %}/items/new{% endif %}">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Item name</label>
+          <input class="form-control" name="name" value="{{ item.name if item else '' }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Category</label>
+          <input class="form-control" name="category" value="{{ item.category if item else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Brand</label>
+          <input class="form-control" name="brand" value="{{ item.brand if item else '' }}">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Buy frequency</label>
+          <input class="form-control" name="buy_freq" value="{{ item.buy_freq if item else '' }}" placeholder="Weekly / Fortnightly / Monthly">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Buy quantity</label>
+          <input class="form-control" name="buy_qty" value="{{ item.buy_qty if item and item.buy_qty is not none else '' }}" placeholder="e.g. 1 or 0.5">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Preferred store (optional)</label>
+          <input class="form-control" name="preferred_store" value="{{ item.preferred_store if item else '' }}">
+        </div>
+
+        <div class="col-12"><hr></div>
+
+        {% set al = links.get("ALDI") %}
+        <div class="col-12"><div class="fw-semibold mb-1">ALDI</div></div>
+        <div class="col-md-4">
+          <label class="form-label">Store label</label>
+          <input class="form-control" name="aldi_label" value="{{ al.store_label if al else '' }}">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Product URL</label>
+          <input class="form-control mono" name="aldi_url" value="{{ al.url if al else '' }}" placeholder="Paste the per-product page URL">
+        </div>
+
+        {% set co = links.get("COLES") %}
+        <div class="col-12 mt-3"><div class="fw-semibold mb-1">COLES</div></div>
+        <div class="col-md-4">
+          <label class="form-label">Store label</label>
+          <input class="form-control" name="coles_label" value="{{ co.store_label if co else '' }}">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Product URL</label>
+          <input class="form-control mono" name="coles_url" value="{{ co.url if co else '' }}" placeholder="Paste the per-product page URL">
+        </div>
+
+        {% set wo = links.get("WOOLWORTHS") %}
+        <div class="col-12 mt-3"><div class="fw-semibold mb-1">WOOLWORTHS</div></div>
+        <div class="col-md-4">
+          <label class="form-label">Store label</label>
+          <input class="form-control" name="woolies_label" value="{{ wo.store_label if wo else '' }}">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Product URL</label>
+          <input class="form-control mono" name="woolies_url" value="{{ wo.url if wo else '' }}" placeholder="Paste the per-product page URL">
+        </div>
+
+        <div class="col-12 mt-4 d-flex gap-2">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <a class="btn btn-outline-secondary" href="/">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

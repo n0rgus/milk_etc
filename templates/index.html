@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+  <form method="post" action="/scrape" class="d-flex gap-2 align-items-center">
+    <select class="form-select" style="max-width: 220px" name="store">
+      <option value="ALL">Scrape ALL stores</option>
+      {% for s in stores %}
+      <option value="{{ s.name }}">{{ s.name }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-primary" type="submit">Scrape now</button>
+  </form>
+
+  <form method="post" action="/shop/start" class="ms-auto">
+    <button class="btn btn-success" type="submit">Start shop session</button>
+  </form>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <div class="fw-semibold">Today's price snapshot</div>
+        <div class="muted small">Rows are your regular items. Add store URLs to enable scraping.</div>
+      </div>
+      <div class="small muted">Tip: Click an item to add/edit store URLs.</div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Item</th>
+          <th>Category</th>
+          <th>ALDI</th>
+          <th>COLES</th>
+          <th>WOOLWORTHS</th>
+          <th>Best</th>
+          <th>Cycle note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>
+            <a href="/items/{{ item.id }}" class="text-decoration-none">{{ item.name }}</a>
+            {% if item.brand %}<span class="badge bg-secondary pill ms-1">{{ item.brand }}</span>{% endif %}
+          </td>
+          <td class="muted">{{ item.category or "" }}</td>
+
+          {% for store_name in ["ALDI","COLES","WOOLWORTHS"] %}
+            {% set ph = (latest.get(item.id) or {}).get(store_name) %}
+            <td class="price">
+              {% if ph and ph.price is not none %}
+                ${{ "%.2f"|format(ph.price) }}
+                {% if ph.discount_percent %}
+                  <span class="badge bg-danger pill ms-1">-{{ "%.0f"|format(ph.discount_percent) }}%</span>
+                {% endif %}
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+          {% endfor %}
+
+          <td class="price">
+            {% set b = best.get(item.id) %}
+            {% if b %}
+              <span class="badge bg-success pill">{{ b[0] }}</span>
+              ${{ "%.2f"|format(b[1]) }}
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+
+          <td class="muted small">
+            {% set cyc = cycles.get(item.id) %}
+            {% if cyc %}
+              {% set chosen = (best.get(item.id) or [None])[0] %}
+              {% if chosen and cyc.get(chosen) and cyc.get(chosen).get("next_expected_discount") %}
+                Next expected: {{ cyc.get(chosen).get("next_expected_discount").date() }}
+              {% else %}
+                —
+              {% endif %}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

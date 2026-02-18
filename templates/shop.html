@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <div class="h5 mb-1">{{ title }}</div>
+    <div class="muted small">Tick what you actually buy this shop, then Save. (This becomes useful later for “don’t buy yet” decisions.)</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="/buylist">Back to Buy List</a>
+</div>
+
+<form method="post" action="/shop/{{ session.id }}">
+  <input type="hidden" name="purchased_ids" id="purchased_ids">
+  {% for store_name, rows in groups.items() %}
+  {% if store_name == "UNPRICED" %}
+    {# keep it at the end #}
+  {% endif %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+      <span>{{ store_name }}</span>
+      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleGroup('{{ store_name }}', true)">Tick all</button>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 46px;">Buy</th>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Discount</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            {% set item = row.item %}
+            {% set best = row.best %}
+            <tr class="{% if row.wait %}table-warning{% endif %}">
+              <td class="text-center">
+                <input class="form-check-input tick tick-{{ store_name }}" type="checkbox" value="{{ item.id }}"
+                  {% if purchased.get(item.id) %}checked{% endif %}>
+              </td>
+              <td>{{ item.name }}</td>
+              <td class="muted">{{ item.category or "" }}</td>
+              <td class="price">
+                {% if best %}
+                  ${{ "%.2f"|format(best[1]) }}
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if best and best[2] and best[2].discount_percent %}
+                  <span class="badge bg-danger pill">-{{ "%.0f"|format(best[2].discount_percent) }}%</span>
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              </td>
+              <td class="muted small">
+                {% if row.wait %}
+                  <span class="badge bg-warning text-dark pill">WAIT</span>
+                {% endif %}
+                {{ row.note }}
+              </td>
+            </tr>
+            {% endfor %}
+            {% if rows|length == 0 %}
+            <tr><td colspan="6" class="muted small p-3">No items in this group yet.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary" type="submit" onclick="collectTicks()">Save</button>
+    <a class="btn btn-outline-secondary" href="/">Done</a>
+  </div>
+</form>
+
+<script>
+function collectTicks() {
+  const ids = Array.from(document.querySelectorAll("input.tick:checked")).map(x => x.value);
+  document.getElementById("purchased_ids").value = ids.join(",");
+}
+function toggleGroup(storeName, checked) {
+  document.querySelectorAll("input.tick-" + storeName).forEach(cb => cb.checked = checked);
+}
+</script>
+{% endblock %}
