@@ -62,6 +62,26 @@ class PriceHistory(Base):
     store = relationship("Store", back_populates="prices")
 
 
+class CaptureRun(Base):
+    __tablename__ = "capture_runs"
+    id = Column(Integer, primary_key=True)
+    store = Column(String, nullable=False)
+    started_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class CaptureRunItem(Base):
+    __tablename__ = "capture_run_items"
+    id = Column(Integer, primary_key=True)
+    capture_run_id = Column(Integer, ForeignKey("capture_runs.id"), nullable=False)
+    item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
+    store_id = Column(Integer, ForeignKey("stores.id"), nullable=False)
+    captured_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("capture_run_id", "item_id", "store_id", name="uq_capture_run_item_store"),
+    )
+
+
 class ShopSession(Base):
     __tablename__ = "shop_sessions"
     id = Column(Integer, primary_key=True)
