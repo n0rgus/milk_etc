@@ -275,13 +275,9 @@ def _get_store(db, store_name: str) -> Store:
 
 
 def _ensure_capture_run(db, store_name: str) -> CaptureRun:
-    from datetime import timedelta
-
-    cutoff = datetime.utcnow() - timedelta(hours=6)
     run = (
         db.query(CaptureRun)
         .filter(CaptureRun.store == store_name)
-        .filter(CaptureRun.started_at >= cutoff)
         .order_by(CaptureRun.id.desc())
         .first()
     )
@@ -292,6 +288,85 @@ def _ensure_capture_run(db, store_name: str) -> CaptureRun:
     db.commit()
     db.refresh(run)
     return run
+
+
+@app.get("/capture", response_class=HTMLResponse)
+def capture_center(request: Request, store: str = "WOOLWORTHS"):
+    db = SessionLocal()
+    try:
+        stores = db.query(Store).order_by(Store.name.asc()).all()
+        store_name = store.strip().upper() if store else "WOOLWORTHS"
+        if not any(s.name == store_name for s in stores):
+            store_name = "WOOLWORTHS"
+        return templates.TemplateResponse(
+            "capture.html",
+            {
+                "request": request,
+                "title": "Capture Center",
+                "stores": stores,
+                "selected_store": store_name,
+            },
+        )
+    finally:
+        db.close()
+
+
+@app.post("/api/capture/reset")
+def api_capture_reset(payload: dict = Body(...)):
+    store = str(payload.get("store", "")).strip().upper()
+    db = SessionLocal()
+    try:
+        _get_store(db, store)
+        run = CaptureRun(store=store, started_at=datetime.utcnow())
+        db.add(run)
+        db.commit()
+        db.refresh(run)
+        return {"ok": True, "capture_run_id": run.id}
+    finally:
+        db.close()
+
+
+@app.get("/api/capture/status")
+def api_capture_status(store: str):
+    store_name = store.strip().upper()
+    db = SessionLocal()
+    try:
+        st = _get_store(db, store_name)
+        run = _ensure_capture_run(db, store_name)
+
+        total_items_with_urls = (
+            db.query(StoreLink)
+            .filter(StoreLink.store_id == st.id)
+            .filter(StoreLink.url.isnot(None))
+            .filter(StoreLink.url != "")
+            .count()
+        )
+
+        captured_this_run = (
+            db.query(CaptureRunItem)
+            .filter(CaptureRunItem.capture_run_id == run.id)
+            .filter(CaptureRunItem.store_id == st.id)
+            .count()
+        )
+
+        last_capture = (
+            db.query(CaptureRunItem)
+            .filter(CaptureRunItem.capture_run_id == run.id)
+            .filter(CaptureRunItem.store_id == st.id)
+            .order_by(CaptureRunItem.captured_at.desc())
+            .first()
+        )
+
+        return {
+            "store": store_name,
+            "capture_run_id": run.id,
+            "total_items_with_urls": total_items_with_urls,
+            "captured_this_run": captured_this_run,
+            "remaining": max(total_items_with_urls - captured_this_run, 0),
+            "last_captured_at": last_capture.captured_at.isoformat() if last_capture else None,
+        }
+    finally:
+        db.close()
 
 
 @app.get("/api/next")
@@ -340,10 +415,20 @@ def api_capture(payload: dict = Body(...)):
     db = SessionLocal()
     try:
         store = str(payload.get("store", "")).strip().upper()
-        capture_run_id = int(payload.get("capture_run_id"))
+        capture_run_id = payload.get("capture_run_id")
         item_id = int(payload.get("item_id"))
 
         st = _get_store(db, store)
+        run = None
+        if capture_run_id is not None:
+            run = (
+                db.query(CaptureRun)
+                .filter(CaptureRun.id == int(capture_run_id))
+                .filter(CaptureRun.store == store)
+                .first()
+            )
+        if run is None:
+            run = _ensure_capture_run(db, store)
 
         ph = PriceHistory(
             item_id=item_id,
@@ -359,14 +444,23 @@ def api_capture(payload: dict = Body(...)):
             ph.discount_percent = round((ph.was_price - ph.price) / ph.was_price * 100.0, 1)
 
         db.add(ph)
-        db.add(
-            CaptureRunItem(
-                capture_run_id=capture_run_id,
-                item_id=item_id,
-                store_id=st.id,
-                captured_at=datetime.utcnow(),
-            )
+
+        existing_capture = (
+            db.query(CaptureRunItem)
+            .filter(CaptureRunItem.capture_run_id == run.id)
+            .filter(CaptureRunItem.item_id == item_id)
+            .filter(CaptureRunItem.store_id == st.id)
+            .first()
         )
+        if existing_capture is None:
+            db.add(
+                CaptureRunItem(
+                    capture_run_id=run.id,
+                    item_id=item_id,
+                    store_id=st.id,
+                    captured_at=datetime.utcnow(),
+                )
+            )
 
         db.commit()
         return {"ok": True}

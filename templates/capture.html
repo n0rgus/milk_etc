@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Capture Center</h1>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label" for="storeSelect">Store</label>
+        <select id="storeSelect" class="form-select">
+          {% for store in stores %}
+            <option value="{{ store.name }}" {% if store.name == selected_store %}selected{% endif %}>{{ store.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <button id="resetBtn" class="btn btn-primary">Reset / Start New Capture Run</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">Run Status</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3"><strong>Run ID:</strong> <span id="runId">-</span></div>
+      <div class="col-md-3"><strong>Total items:</strong> <span id="totalItems">-</span></div>
+      <div class="col-md-3"><strong>Captured this run:</strong> <span id="capturedItems">-</span></div>
+      <div class="col-md-3"><strong>Remaining:</strong> <span id="remainingItems">-</span></div>
+      <div class="col-12"><strong>Last captured:</strong> <span id="lastCaptured">-</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">Extension Workflow</div>
+  <div class="card-body">
+    <ol class="mb-0">
+      <li>Start app: <code>uvicorn app.main:app --reload</code>.</li>
+      <li>Click <strong>Reset / Start New Capture Run</strong>.</li>
+      <li>Load unpacked extension folder <code>extension_woolies_capture/</code> in Chrome/Edge developer mode.</li>
+      <li>Click extension icon to start automated capture loop.</li>
+      <li>Leave the tab alone while it navigates and posts capture data.</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+  const storeEl = document.getElementById("storeSelect");
+  const resetBtn = document.getElementById("resetBtn");
+
+  async function fetchStatus() {
+    const store = storeEl.value;
+    const res = await fetch(`/api/capture/status?store=${encodeURIComponent(store)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    document.getElementById("runId").textContent = data.capture_run_id ?? "-";
+    document.getElementById("totalItems").textContent = data.total_items_with_urls ?? "-";
+    document.getElementById("capturedItems").textContent = data.captured_this_run ?? "-";
+    document.getElementById("remainingItems").textContent = data.remaining ?? "-";
+    document.getElementById("lastCaptured").textContent = data.last_captured_at ?? "-";
+  }
+
+  async function resetRun() {
+    const store = storeEl.value;
+    const res = await fetch("/api/capture/reset", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ store })
+    });
+    if (res.ok) {
+      await fetchStatus();
+    }
+  }
+
+  storeEl.addEventListener("change", fetchStatus);
+  resetBtn.addEventListener("click", resetRun);
+
+  fetchStatus();
+  setInterval(fetchStatus, 3000);
+</script>
+{% endblock %}

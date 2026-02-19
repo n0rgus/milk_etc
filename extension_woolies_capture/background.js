@@ -16,6 +16,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 
   running = true;
   activeTabId = tab.id;
+  currentJob = null;
   console.log("[PriceWatch] starting…");
   await nextAndNavigate();
 });
@@ -33,7 +34,6 @@ async function nextAndNavigate() {
 
   currentJob = next;
   console.log("[PriceWatch] next:", currentJob.item_name, currentJob.url);
-
   await chrome.tabs.update(activeTabId, { url: currentJob.url });
 }
 
@@ -55,8 +55,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         promo_text: msg.promo_text ?? null
       };
 
-      console.log("[PriceWatch] captured:", payload);
-
       const res = await fetch(`${APP_BASE}/api/capture`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -67,6 +65,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         console.warn("[PriceWatch] capture POST failed:", res.status);
       }
 
+      await sleep(800);
+      await nextAndNavigate();
+    }
+
+    if (msg && msg.type === "PRICEWATCH_CAPTURE_FAIL") {
+      console.warn("[PriceWatch] capture fail:", msg.reason || "unknown");
       await sleep(800);
       await nextAndNavigate();
     }
