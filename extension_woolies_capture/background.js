@@ -70,7 +70,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
 
     if (msg && msg.type === "PRICEWATCH_CAPTURE_FAIL") {
-      console.warn("[PriceWatch] capture fail:", msg.reason || "unknown");
+      console.warn("[PriceWatch] capture failed:", msg.reason || "unknown", msg.url || "");
       await sleep(800);
       await nextAndNavigate();
     }
