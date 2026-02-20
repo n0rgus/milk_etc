@@ -64,6 +64,13 @@ def _selector_list(value: Any) -> List[str]:
     return []
 
 
+def _close_quietly(resource: Any) -> None:
+    try:
+        resource.close()
+    except Exception:
+        pass
+
+
 def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None = None) -> Dict[str, Dict[str, Any]]:
     """
     store_links: list of StoreLink rows (must have .store.name and .url)
@@ -213,7 +220,7 @@ def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None =
                             pass
                     data["promo_text"] = (data.get("promo_text") or "") + f" [error: {type(e).__name__}]"
                 finally:
-                    page.close()
+                    _close_quietly(page)
 
                 results[store_name] = data
 
@@ -222,8 +229,8 @@ def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None =
                     context.storage_state(path=sp)
                 except Exception:
                     pass
-            context.close()
+            _close_quietly(context)
 
-        browser.close()
+        _close_quietly(browser)
 
     return results
