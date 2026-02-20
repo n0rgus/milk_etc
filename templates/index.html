@@ -11,9 +11,19 @@
     <button class="btn btn-primary" type="submit">Scrape now</button>
   </form>
 
-  <form method="post" action="/shop/start" class="ms-auto">
-    <button class="btn btn-success" type="submit">Start shop session</button>
-  </form>
+  <div class="ms-auto text-end">
+    <div class="small muted">
+      Scrape mode:
+      {% if scrape_settings and scrape_settings.headful %}
+        headful (slowmo {{ scrape_settings.slowmo_ms }}ms)
+      {% else %}
+        headless
+      {% endif %}
+    </div>
+    <form method="post" action="/shop/start" class="mt-1">
+      <button class="btn btn-success" type="submit">Start shop session</button>
+    </form>
+  </div>
 </div>
 
 <div class="card shadow-sm">

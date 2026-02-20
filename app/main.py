@@ -36,6 +36,8 @@ from .services import (
     compute_cycle_insights,
     build_buylist_groups,
     seed_from_json_if_empty,
+    get_scrape_settings,
+    set_scrape_settings,
 )
 
 APP_TITLE = "Grocery PriceWatch"
@@ -79,6 +81,7 @@ def dashboard(request: Request):
         best = compute_best_store_map(items, latest)
         cycles = compute_cycle_insights(db, [i.id for i in items])
         stores = db.query(Store).order_by(Store.name.asc()).all()
+        scrape_settings = get_scrape_settings(db)
         return templates.TemplateResponse(
             "index.html",
             {
@@ -89,6 +92,7 @@ def dashboard(request: Request):
                 "latest": latest,
                 "best": best,
                 "cycles": cycles,
+                "scrape_settings": scrape_settings,
             },
         )
     finally:
@@ -245,7 +249,8 @@ def scrape_now(store: str = Form("ALL")):
             if not eligible:
                 continue
 
-            results = scrape_item_prices(eligible)
+            scrape_settings = get_scrape_settings(db)
+            results = scrape_item_prices(eligible, settings=scrape_settings)
             # Persist results
             for store_name, data in results.items():
                 st = db.query(Store).filter(Store.name == store_name).one()
@@ -464,6 +469,26 @@ def api_capture(payload: dict = Body(...)):
 
         db.commit()
         return {"ok": True}
+    finally:
+        db.close()
+
+
+
+@app.get("/api/settings/scrape")
+def api_get_scrape_settings():
+    db = SessionLocal()
+    try:
+        return get_scrape_settings(db)
+    finally:
+        db.close()
+
+
+@app.post("/api/settings/scrape")
+def api_set_scrape_settings(payload: dict = Body(...)):
+    db = SessionLocal()
+    try:
+        settings = set_scrape_settings(db, payload)
+        return settings
     finally:
         db.close()
 
