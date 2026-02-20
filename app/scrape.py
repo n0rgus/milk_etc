@@ -8,6 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, DefaultDict, Dict, List
 
+from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
@@ -71,6 +72,20 @@ def _close_quietly(resource: Any) -> None:
         pass
 
 
+def _launch_browser(playwright: Any, *, headful: bool, slowmo_ms: int):
+    launch_kwargs = {
+        "headless": not headful,
+        "slow_mo": slowmo_ms if headful else 0,
+    }
+    preferred_channel = os.environ.get("PRICEWATCH_BROWSER_CHANNEL", "msedge").strip()
+    if preferred_channel:
+        try:
+            return playwright.chromium.launch(channel=preferred_channel, **launch_kwargs)
+        except Exception:
+            pass
+    return playwright.chromium.launch(**launch_kwargs)
+
+
 def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None = None) -> Dict[str, Dict[str, Any]]:
     """
     store_links: list of StoreLink rows (must have .store.name and .url)
@@ -96,11 +111,7 @@ def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None =
     with sync_playwright() as p:
         # NOTE: Coles tends to behave differently in bundled headless Chromium vs a real installed browser.
         # Using the installed Edge channel on Windows usually matches "debug headful" behaviour much better.
-        browser = p.chromium.launch(
-            channel="msedge",
-            headless=not headful,
-            slow_mo=slowmo_ms if headful else 0,
-        )
+        browser = _launch_browser(p, headful=headful, slowmo_ms=slowmo_ms)
 
         for store_name, links in by_store.items():
             ctx_kwargs: Dict[str, Any] = {}
@@ -145,7 +156,14 @@ def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None =
                     price_text = None
                     matched_selector = None
                     for attempt in range(3):
-                        page.goto(url, wait_until="domcontentloaded", timeout=45000)
+                        try:
+                            page.goto(url, wait_until="domcontentloaded", timeout=45000)
+                        except PlaywrightError as e:
+                            if "Target page, context or browser has been closed" not in str(e):
+                                raise
+                            _close_quietly(page)
+                            page = context.new_page()
+                            page.goto(url, wait_until="domcontentloaded", timeout=45000)
                         page.wait_for_timeout(2500 + attempt * 1000)
 
                         for price_sel in price_selectors:
