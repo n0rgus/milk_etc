@@ -8,6 +8,7 @@ if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from datetime import date, datetime
+import logging
 from typing import Optional, Dict, Any, List, Tuple
 
 from sqlalchemy.orm import joinedload
@@ -41,6 +42,7 @@ from .services import (
 )
 
 APP_TITLE = "Grocery PriceWatch"
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title=APP_TITLE)
 app.add_middleware(
@@ -238,6 +240,7 @@ def scrape_now(store: str = Form("ALL")):
         items = db.query(Item).order_by(Item.id.asc()).all()
         store_filter = store.strip().upper()
         count = 0
+        errors: List[Dict[str, str]] = []
         for item in items:
             links = db.query(StoreLink).join(Store).filter(StoreLink.item_id == item.id).all()
             # Only scrape links with URLs
@@ -250,10 +253,18 @@ def scrape_now(store: str = Form("ALL")):
                 continue
 
             scrape_settings = get_scrape_settings(db)
-            results = scrape_item_prices(eligible, settings=scrape_settings)
+            try:
+                results = scrape_item_prices(eligible, settings=scrape_settings)
+            except Exception:
+                logger.exception("Scrape failed for item_id=%s store=%s", item.id, store_filter)
+                errors.append({"item_id": str(item.id), "name": item.name})
+                continue
             # Persist results
             for store_name, data in results.items():
-                st = db.query(Store).filter(Store.name == store_name).one()
+                st = db.query(Store).filter(Store.name == store_name).first()
+                if st is None:
+                    logger.warning("Skipping unknown store '%s' for item_id=%s", store_name, item.id)
+                    continue
                 ph = PriceHistory(
                     item_id=item.id,
                     store_id=st.id,
@@ -267,6 +278,17 @@ def scrape_now(store: str = Form("ALL")):
                 db.add(ph)
                 count += 1
             db.commit()
+
+        if errors:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "saved": count,
+                    "errors": errors,
+                    "message": "Scrape completed with some failures. Check server logs for details.",
+                },
+                status_code=207,
+            )
 
         return RedirectResponse(url="/", status_code=303)
     finally:
