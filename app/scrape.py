@@ -79,7 +79,13 @@ def scrape_item_prices(store_links: List[Any]) -> Dict[str, Dict[str, Any]]:
             by_store[sl.store.name].append(sl)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=not HEADFUL, slow_mo=SLOWMO_MS if HEADFUL else 0)
+        # NOTE: Coles tends to behave differently in bundled headless Chromium vs a real installed browser.
+        # Using the installed Edge channel on Windows usually matches "debug headful" behaviour much better.
+        browser = p.chromium.launch(
+            channel="msedge",
+            headless=not HEADFUL,
+            slow_mo=SLOWMO_MS if HEADFUL else 0,
+        )
 
         for store_name, links in by_store.items():
             ctx_kwargs: Dict[str, Any] = {}
@@ -119,27 +125,32 @@ def scrape_item_prices(store_links: List[Any]) -> Dict[str, Dict[str, Any]]:
                     "url": url,
                 }
                 try:
-                    page.goto(url, wait_until="domcontentloaded", timeout=45000)
-                    page.wait_for_timeout(2000)
-
+                    # Coles (and some SPA flows) can "half render": selector appears before final price is injected.
+                    # Retry a few times with increasing waits to mirror debug/slow-mo behaviour.
                     price_text = None
                     matched_selector = None
-                    for price_sel in price_selectors:
-                        try:
-                            page.wait_for_selector(price_sel, timeout=25000)
-                        except PlaywrightTimeoutError:
-                            continue
+                    for attempt in range(3):
+                        page.goto(url, wait_until="domcontentloaded", timeout=45000)
+                        page.wait_for_timeout(2500 + attempt * 1000)
 
-                        count = page.locator(price_sel).count()
-                        if count == 0:
-                            if store_name == "COLES":
-                                page.screenshot(path=str(DEBUG_DIR / "coles_no_match.png"), full_page=True)
-                                (DEBUG_DIR / "coles_no_match.html").write_text(page.content(), encoding="utf-8")
-                            continue
+                        for price_sel in price_selectors:
+                            try:
+                                page.wait_for_selector(price_sel, timeout=15000)
+                            except PlaywrightTimeoutError:
+                                continue
 
-                        price_text = page.locator(price_sel).first.inner_text().strip()
-                        matched_selector = price_sel
-                        break
+                            if page.locator(price_sel).count() <= 0:
+                                continue
+
+                            txt = page.locator(price_sel).first.inner_text().strip()
+                            parsed = _parse_price(txt)
+                            if parsed is not None:
+                                price_text = txt
+                                matched_selector = price_sel
+                                break
+
+                        if price_text:
+                            break
 
                     if price_text is None:
                         if store_name == "COLES":
