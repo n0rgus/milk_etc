@@ -20,9 +20,6 @@ STATE_DIR.mkdir(parents=True, exist_ok=True)
 DEBUG_DIR = Path(os.environ.get("PRICEWATCH_DEBUG_DIR", "scrape_debug"))
 DEBUG_DIR.mkdir(parents=True, exist_ok=True)
 
-HEADFUL = os.environ.get("PRICEWATCH_HEADFUL", "0").strip().lower() in ("1", "true", "yes")
-SLOWMO_MS = int(os.environ.get("PRICEWATCH_SLOWMO_MS", "0"))
-
 
 def _state_path(store_name: str) -> str:
     return str(STATE_DIR / f"{store_name.lower()}.json")
@@ -67,7 +64,7 @@ def _selector_list(value: Any) -> List[str]:
     return []
 
 
-def scrape_item_prices(store_links: List[Any]) -> Dict[str, Dict[str, Any]]:
+def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None = None) -> Dict[str, Dict[str, Any]]:
     """
     store_links: list of StoreLink rows (must have .store.name and .url)
     Returns: {STORE_NAME: {"price": float, "was_price": float|None, ...}}
@@ -78,13 +75,24 @@ def scrape_item_prices(store_links: List[Any]) -> Dict[str, Dict[str, Any]]:
         if sl.url:
             by_store[sl.store.name].append(sl)
 
+    settings = settings or {}
+    env_headful = os.environ.get("PRICEWATCH_HEADFUL", "0").strip().lower() in ("1", "true", "yes")
+    env_slowmo_ms = int(os.environ.get("PRICEWATCH_SLOWMO_MS", "0"))
+    headful = bool(settings.get("headful", env_headful))
+    try:
+        slowmo_ms = max(0, int(settings.get("slowmo_ms", env_slowmo_ms) or 0))
+    except (TypeError, ValueError):
+        slowmo_ms = env_slowmo_ms
+    debug_capture_enabled = bool(settings.get("debug_capture_enabled", True))
+    save_storage_state = bool(settings.get("save_storage_state", True))
+
     with sync_playwright() as p:
         # NOTE: Coles tends to behave differently in bundled headless Chromium vs a real installed browser.
         # Using the installed Edge channel on Windows usually matches "debug headful" behaviour much better.
         browser = p.chromium.launch(
             channel="msedge",
-            headless=not HEADFUL,
-            slow_mo=SLOWMO_MS if HEADFUL else 0,
+            headless=not headful,
+            slow_mo=slowmo_ms if headful else 0,
         )
 
         for store_name, links in by_store.items():
@@ -153,7 +161,7 @@ def scrape_item_prices(store_links: List[Any]) -> Dict[str, Dict[str, Any]]:
                             break
 
                     if price_text is None:
-                        if store_name == "COLES":
+                        if store_name == "COLES" and debug_capture_enabled:
                             page.screenshot(path=str(DEBUG_DIR / "coles_no_match.png"), full_page=True)
                             (DEBUG_DIR / "coles_no_match.html").write_text(page.content(), encoding="utf-8")
                         raise Exception(f"No elements matched selectors: {price_selectors}")
@@ -189,28 +197,31 @@ def scrape_item_prices(store_links: List[Any]) -> Dict[str, Dict[str, Any]]:
                         data["promo_text"] = (data.get("promo_text") or "") or None
 
                 except PlaywrightTimeoutError:
-                    try:
-                        page.screenshot(path=str(DEBUG_DIR / f"{store_name.lower()}_error.png"), full_page=True)
-                        (DEBUG_DIR / f"{store_name.lower()}_error.html").write_text(page.content(), encoding="utf-8")
-                    except Exception:
-                        pass
+                    if debug_capture_enabled:
+                        try:
+                            page.screenshot(path=str(DEBUG_DIR / f"{store_name.lower()}_error.png"), full_page=True)
+                            (DEBUG_DIR / f"{store_name.lower()}_error.html").write_text(page.content(), encoding="utf-8")
+                        except Exception:
+                            pass
                     data["promo_text"] = (data.get("promo_text") or "") + " [timeout]"
                 except Exception as e:
-                    try:
-                        page.screenshot(path=str(DEBUG_DIR / f"{store_name.lower()}_error.png"), full_page=True)
-                        (DEBUG_DIR / f"{store_name.lower()}_error.html").write_text(page.content(), encoding="utf-8")
-                    except Exception:
-                        pass
+                    if debug_capture_enabled:
+                        try:
+                            page.screenshot(path=str(DEBUG_DIR / f"{store_name.lower()}_error.png"), full_page=True)
+                            (DEBUG_DIR / f"{store_name.lower()}_error.html").write_text(page.content(), encoding="utf-8")
+                        except Exception:
+                            pass
                     data["promo_text"] = (data.get("promo_text") or "") + f" [error: {type(e).__name__}]"
                 finally:
                     page.close()
 
                 results[store_name] = data
 
-            try:
-                context.storage_state(path=sp)
-            except Exception:
-                pass
+            if save_storage_state:
+                try:
+                    context.storage_state(path=sp)
+                except Exception:
+                    pass
             context.close()
 
         browser.close()

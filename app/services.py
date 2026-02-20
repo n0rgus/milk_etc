@@ -7,8 +7,58 @@ from typing import Dict, List, Any, Tuple
 from sqlalchemy import func, and_
 from sqlalchemy.orm import Session
 
-from .models import Item, Store, StoreLink, PriceHistory
+from .models import Item, Store, StoreLink, PriceHistory, ScrapeSettings
 
+
+
+DEFAULT_SCRAPE_SETTINGS: Dict[str, Any] = {
+    "headful": False,
+    "slowmo_ms": 0,
+    "debug_capture_enabled": True,
+    "save_storage_state": True,
+}
+
+
+def get_scrape_settings(db: Session) -> Dict[str, Any]:
+    row = db.query(ScrapeSettings).filter(ScrapeSettings.id == 1).first()
+    if row is None:
+        return dict(DEFAULT_SCRAPE_SETTINGS)
+    return {
+        "headful": bool(row.headful),
+        "slowmo_ms": int(row.slowmo_ms or 0),
+        "debug_capture_enabled": bool(row.debug_capture_enabled),
+        "save_storage_state": bool(row.save_storage_state),
+    }
+
+
+def set_scrape_settings(db: Session, payload: Dict[str, Any]) -> Dict[str, Any]:
+    current = get_scrape_settings(db)
+    merged = dict(current)
+    for key in DEFAULT_SCRAPE_SETTINGS:
+        if key in payload:
+            merged[key] = payload.get(key)
+
+    merged["headful"] = bool(merged.get("headful", False))
+    try:
+        merged["slowmo_ms"] = max(0, int(merged.get("slowmo_ms", 0) or 0))
+    except (TypeError, ValueError):
+        merged["slowmo_ms"] = 0
+    merged["debug_capture_enabled"] = bool(merged.get("debug_capture_enabled", True))
+    merged["save_storage_state"] = bool(merged.get("save_storage_state", True))
+
+    row = db.query(ScrapeSettings).filter(ScrapeSettings.id == 1).first()
+    if row is None:
+        row = ScrapeSettings(id=1)
+        db.add(row)
+
+    row.headful = merged["headful"]
+    row.slowmo_ms = merged["slowmo_ms"]
+    row.debug_capture_enabled = merged["debug_capture_enabled"]
+    row.save_storage_state = merged["save_storage_state"]
+    row.updated_at = datetime.utcnow()
+
+    db.commit()
+    return get_scrape_settings(db)
 def seed_from_json_if_empty(db: Session, seed_path: str) -> None:
     if db.query(Item).count() > 0:
         return

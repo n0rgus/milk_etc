@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, UniqueConstraint, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, UniqueConstraint, Text, Boolean
 from sqlalchemy.orm import relationship
 
 from .db import Base
@@ -98,3 +98,13 @@ class ShopPurchase(Base):
     __table_args__ = (
         UniqueConstraint("shop_session_id", "item_id", name="uq_shop_item"),
     )
+
+
+class ScrapeSettings(Base):
+    __tablename__ = "scrape_settings"
+    id = Column(Integer, primary_key=True)
+    headful = Column(Boolean, nullable=False, default=False)
+    slowmo_ms = Column(Integer, nullable=False, default=0)
+    debug_capture_enabled = Column(Boolean, nullable=False, default=True)
+    save_storage_state = Column(Boolean, nullable=False, default=True)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
