@@ -58,6 +58,22 @@
             <input class="form-check-input" type="checkbox" id="settings-save-storage-state">
             <label class="form-check-label" for="settings-save-storage-state">Persist store session state (storage_state)</label>
           </div>
+
+          <hr class="my-1">
+
+          <div>
+            <div class="fw-semibold">Coles Session</div>
+            <div class="small text-muted mb-2">Use this when Coles shows an Imperva/hCaptcha security check.</div>
+
+            <label class="form-label" for="coles-init-url">Init URL</label>
+            <input class="form-control" type="url" id="coles-init-url" placeholder="https://www.coles.com.au/product/...">
+
+            <label class="form-label mt-2" for="coles-init-slowmo">Init SlowMo (ms)</label>
+            <input class="form-control" type="number" min="0" step="50" id="coles-init-slowmo" value="250">
+
+            <button class="btn btn-outline-primary btn-sm mt-3" type="button" id="init-coles-session-btn">Init Coles Session (solve security check)</button>
+            <div id="coles-init-feedback" class="small mt-2"></div>
+          </div>
         </form>
         <div id="settings-save-feedback" class="small mt-2"></div>
       </div>
@@ -79,6 +95,10 @@
   const saveStorageStateEl = document.getElementById("settings-save-storage-state");
   const saveBtn = document.getElementById("save-scrape-settings-btn");
   const feedbackEl = document.getElementById("settings-save-feedback");
+  const colesInitUrlEl = document.getElementById("coles-init-url");
+  const colesInitSlowmoEl = document.getElementById("coles-init-slowmo");
+  const initColesBtn = document.getElementById("init-coles-session-btn");
+  const colesInitFeedbackEl = document.getElementById("coles-init-feedback");
 
   function updateSlowmoEnabled() {
     slowmoEl.disabled = !headfulEl.checked;
@@ -87,6 +107,11 @@
   function setFeedback(text, ok) {
     feedbackEl.textContent = text || "";
     feedbackEl.className = ok ? "small mt-2 text-success" : "small mt-2 text-danger";
+  }
+
+  function setColesFeedback(text, ok) {
+    colesInitFeedbackEl.textContent = text || "";
+    colesInitFeedbackEl.className = ok ? "small mt-2 text-success" : "small mt-2 text-danger";
   }
 
   async function loadSettings() {
@@ -128,6 +153,34 @@
     }
   }
 
+  async function initColesSession() {
+    setColesFeedback("", true);
+    const payload = {
+      url: (colesInitUrlEl.value || "").trim(),
+      slowmo_ms: Math.max(0, parseInt(colesInitSlowmoEl.value || "250", 10) || 250),
+    };
+    if (!payload.url) {
+      setColesFeedback("Please enter a Coles URL first.", false);
+      return;
+    }
+
+    setColesFeedback("Opening browser for manual verification…", true);
+    try {
+      const res = await fetch("/api/coles/init-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || "Init session failed");
+      }
+      setColesFeedback(data.message || "Coles init session complete.", true);
+    } catch (err) {
+      setColesFeedback(err.message || "Unable to initialize Coles session.", false);
+    }
+  }
+
   if (modalEl) {
     modalEl.addEventListener("show.bs.modal", loadSettings);
   }
@@ -136,6 +189,9 @@
   }
   if (saveBtn) {
     saveBtn.addEventListener("click", saveSettings);
+  }
+  if (initColesBtn) {
+    initColesBtn.addEventListener("click", initColesSession);
   }
 })();
 </script>
