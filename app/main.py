@@ -31,6 +31,7 @@ from .models import (
     CaptureRunItem,
 )
 from .scrape import scrape_item_prices
+from .coles_init import init_coles_session
 from .services import (
     get_latest_prices_for_items,
     compute_best_store_map,
@@ -80,6 +81,13 @@ def dashboard(request: Request):
     try:
         items = db.query(Item).order_by(Item.category.asc().nullslast(), Item.name.asc()).all()
         latest = get_latest_prices_for_items(db, [i.id for i in items])
+        coles_blocked_count = (
+            db.query(PriceHistory)
+            .join(Store, Store.id == PriceHistory.store_id)
+            .filter(Store.name == "COLES")
+            .filter(PriceHistory.promo_text.ilike("%[blocked: imperva%"))
+            .count()
+        )
         best = compute_best_store_map(items, latest)
         cycles = compute_cycle_insights(db, [i.id for i in items])
         stores = db.query(Store).order_by(Store.name.asc()).all()
@@ -95,6 +103,7 @@ def dashboard(request: Request):
                 "best": best,
                 "cycles": cycles,
                 "scrape_settings": scrape_settings,
+                "coles_blocked_count": coles_blocked_count,
             },
         )
     finally:
@@ -513,6 +522,33 @@ def api_set_scrape_settings(payload: dict = Body(...)):
         return settings
     finally:
         db.close()
+
+
+@app.post("/api/coles/init-session")
+def api_coles_init_session(payload: dict = Body(...)):
+    url = str(payload.get("url", "")).strip()
+    if not url:
+        return JSONResponse({"ok": False, "message": "A Coles URL is required."}, status_code=400)
+
+    try:
+        slowmo_ms = max(0, int(payload.get("slowmo_ms", 250) or 250))
+    except (TypeError, ValueError):
+        slowmo_ms = 250
+
+    state_path = os.path.join(os.path.dirname(__file__), "..", "state", "coles.json")
+    try:
+        init_coles_session(url=url, state_path=state_path, slowmo_ms=slowmo_ms)
+    except Exception as exc:
+        logger.exception("Coles init session failed")
+        return JSONResponse(
+            {"ok": False, "message": f"Coles init session failed: {type(exc).__name__}"},
+            status_code=500,
+        )
+
+    return {
+        "ok": True,
+        "message": "Coles init session complete; state saved to state/coles.json",
+    }
 
 @app.get("/buylist", response_class=HTMLResponse)
 def buylist(request: Request):

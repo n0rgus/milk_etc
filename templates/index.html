@@ -26,6 +26,13 @@
   </div>
 </div>
 
+{% if coles_blocked_count and coles_blocked_count > 0 %}
+<div class="alert alert-warning" role="alert">
+  Coles scrape is currently blocked by Imperva security checks on some items.
+  Open <strong>Settings → Init Coles Session</strong>, complete the human verification, then scrape again.
+</div>
+{% endif %}
+
 <div class="card shadow-sm">
   <div class="card-header bg-white">
     <div class="d-flex justify-content-between align-items-center">

@@ -72,6 +72,26 @@ def _close_quietly(resource: Any) -> None:
         pass
 
 
+def _looks_like_imperva_challenge(page: Any) -> bool:
+    try:
+        content = (page.content() or "").lower()
+        url = (page.url or "").lower()
+        title = (page.title() or "").lower()
+        if "additional security check" in content:
+            return True
+        if "hcaptcha" in content:
+            return True
+        if "imperva" in content:
+            return True
+        if "security check" in title:
+            return True
+        if "secure.coles.com.au" in url and "enable javascript" in content:
+            return True
+    except Exception:
+        return False
+    return False
+
+
 def _launch_browser(playwright: Any, *, headful: bool, slowmo_ms: int):
     launch_kwargs = {
         "headless": not headful,
@@ -164,6 +184,19 @@ def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None =
                             _close_quietly(page)
                             page = context.new_page()
                             page.goto(url, wait_until="domcontentloaded", timeout=45000)
+
+                        if store_name == "COLES" and _looks_like_imperva_challenge(page):
+                            if debug_capture_enabled:
+                                page.screenshot(path=str(DEBUG_DIR / "coles_imperva_blocked.png"), full_page=True)
+                                (DEBUG_DIR / "coles_imperva_blocked.html").write_text(page.content(), encoding="utf-8")
+                            data["price"] = None
+                            data["was_price"] = None
+                            data["unit_price"] = None
+                            data["discount_percent"] = None
+                            data["promo_text"] = "[blocked: imperva_security_check]"
+                            price_text = None
+                            break
+
                         page.wait_for_timeout(2500 + attempt * 1000)
 
                         for price_sel in price_selectors:
@@ -185,13 +218,16 @@ def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None =
                         if price_text:
                             break
 
-                    if price_text is None:
+                    if data.get("promo_text") == "[blocked: imperva_security_check]":
+                        pass
+                    elif price_text is None:
                         if store_name == "COLES" and debug_capture_enabled:
                             page.screenshot(path=str(DEBUG_DIR / "coles_no_match.png"), full_page=True)
                             (DEBUG_DIR / "coles_no_match.html").write_text(page.content(), encoding="utf-8")
                         raise Exception(f"No elements matched selectors: {price_selectors}")
 
-                    data["price"] = _parse_price(price_text)
+                    if price_text is not None:
+                        data["price"] = _parse_price(price_text)
 
                     was_sel = sel.get("was_price")
                     if was_sel:
