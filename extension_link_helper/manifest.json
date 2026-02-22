@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "PriceWatch Link Helper",
+  "version": "0.1.0",
+  "description": "From /items/<id>, open store searches, let user pick product, then fill store URL/label back into the edit form.",
+  "permissions": ["tabs", "scripting", "activeTab", "storage"],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*",
+    "https://www.woolworths.com.au/*",
+    "https://www.coles.com.au/*",
+    "https://www.aldi.com.au/*",
+    "https://www.aldi.com.au/*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Link Helper",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://127.0.0.1:8000/items/*", "http://localhost:8000/items/*"],
+      "js": ["content_app.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.woolworths.com.au/*", "https://www.coles.com.au/*", "https://www.aldi.com.au/*"],
+      "js": ["content_store.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
