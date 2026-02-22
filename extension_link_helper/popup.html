@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Link Helper</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 10px; width: 320px; }
+      .row { margin: 8px 0; }
+      .name { font-weight: 600; }
+      button { width: 100%; padding: 8px; margin: 6px 0; }
+      .small { font-size: 12px; color: #555; }
+      .ok { color: #0a7; }
+      .warn { color: #a60; }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <div class="small">Detected product name:</div>
+      <div id="productName" class="name">…</div>
+    </div>
+
+    <div class="row">
+      <button id="openAll">Open searches (Aldi + Coles + Woolies)</button>
+      <button id="openAldi">Open Aldi search</button>
+      <button id="openColes">Open Coles search</button>
+      <button id="openWoolies">Open Woolies search</button>
+    </div>
+
+    <div class="row small">
+      Tip: Choose the correct result in each store tab. When you land on a product page, the URL + label will be sent back and filled in the original edit form.
+    </div>
+
+    <div class="row small" id="status"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
