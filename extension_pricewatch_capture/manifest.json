@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "PriceWatch Woolies Capture",
-  "version": "0.1.0",
-  "description": "Navigates to next Woolworths product page, reads price, posts to local PriceWatch app.",
+  "name": "PriceWatch Capture",
+  "version": "0.2.0",
+  "description": "Captures product prices from Woolworths and Coles pages into the local PriceWatch app.",
   "permissions": ["tabs", "scripting", "activeTab", "storage"],
   "host_permissions": [
     "https://www.woolworths.com.au/*",
+    "https://www.coles.com.au/*",
     "http://127.0.0.1:8000/*",
     "http://localhost:8000/*"
   ],
@@ -13,11 +14,15 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Run Woolies Capture"
+    "default_title": "PriceWatch Capture",
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["https://www.woolworths.com.au/*"],
+      "matches": [
+        "https://www.woolworths.com.au/*",
+        "https://www.coles.com.au/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }

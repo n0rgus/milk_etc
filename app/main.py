@@ -446,6 +446,53 @@ def api_next(store: str):
         db.close()
 
 
+
+
+@app.get("/api/next_multi")
+def api_next_multi(stores: str):
+    store_order = [part.strip().upper() for part in stores.split(",") if part.strip()]
+    if not store_order:
+        return JSONResponse({"done": True})
+
+    db = SessionLocal()
+    try:
+        for store_name in store_order:
+            st = _get_store(db, store_name)
+            run = _ensure_capture_run(db, store_name)
+
+            subq = (
+                db.query(CaptureRunItem.item_id)
+                .filter(CaptureRunItem.capture_run_id == run.id)
+                .filter(CaptureRunItem.store_id == st.id)
+                .subquery()
+            )
+
+            link = (
+                db.query(StoreLink)
+                .options(joinedload(StoreLink.item))
+                .filter(StoreLink.store_id == st.id)
+                .filter(StoreLink.url.isnot(None))
+                .filter(StoreLink.url != "")
+                .filter(~StoreLink.item_id.in_(subq))
+                .order_by(StoreLink.item_id.asc())
+                .first()
+            )
+
+            if link:
+                return {
+                    "done": False,
+                    "capture_run_id": run.id,
+                    "store": store_name,
+                    "item_id": link.item_id,
+                    "item_name": link.item.name if link.item else None,
+                    "url": link.url,
+                }
+
+        return JSONResponse({"done": True})
+    finally:
+        db.close()
+
+
 @app.post("/api/capture")
 def api_capture(payload: dict = Body(...)):
     db = SessionLocal()
