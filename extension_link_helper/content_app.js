@@ -9,9 +9,14 @@ function getItemIdFromPath() {
 }
 
 function getNameFromInput() {
-  const el = document.getElementById("name");
-  if (!el) return null;
-  return (el.value || "").trim();
+  // Prefer id="name" if it exists, otherwise use input[name="name"] (current app markup)
+  const byId = document.getElementById("name");
+  if (byId && typeof byId.value === "string") return byId.value.trim();
+
+  const byName = document.querySelector('input[name="name"]');
+  if (byName && typeof byName.value === "string") return byName.value.trim();
+
+  return null;
 }
 
 function findInputFor(store, kind) {
