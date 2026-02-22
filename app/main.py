@@ -30,7 +30,7 @@ from .models import (
     CaptureRun,
     CaptureRunItem,
 )
-from .scrape import scrape_item_prices
+from .jobs import enqueue_scrape_job, get_job
 from .coles_init import init_coles_session
 from .services import (
     get_latest_prices_for_items,
@@ -238,71 +238,30 @@ def item_edit(
         db.close()
 
 
-@app.post("/scrape")
-def scrape_now(store: str = Form("ALL")):
-    """
-    Scrape prices for all items that have URLs for the selected store (or ALL).
-    This runs synchronously; for big lists, consider running per-store.
-    """
-    db = SessionLocal()
-    try:
-        items = db.query(Item).order_by(Item.id.asc()).all()
-        store_filter = store.strip().upper()
-        count = 0
-        errors: List[Dict[str, str]] = []
-        for item in items:
-            links = db.query(StoreLink).join(Store).filter(StoreLink.item_id == item.id).all()
-            # Only scrape links with URLs
-            eligible = []
-            for sl in links:
-                if sl.url:
-                    if store_filter == "ALL" or sl.store.name == store_filter:
-                        eligible.append(sl)
-            if not eligible:
-                continue
+@app.post("/scrape/start")
+def scrape_start(store: str = Form("ALL")):
+    store_filter = (store or "ALL").strip().upper()
+    store_arg = None if store_filter == "ALL" else store_filter
+    job_id = enqueue_scrape_job(store=store_arg)
+    return {"ok": True, "job_id": job_id}
 
-            scrape_settings = get_scrape_settings(db)
-            try:
-                results = scrape_item_prices(eligible, settings=scrape_settings)
-            except Exception:
-                logger.exception("Scrape failed for item_id=%s store=%s", item.id, store_filter)
-                errors.append({"item_id": str(item.id), "name": item.name})
-                continue
-            # Persist results
-            for store_name, data in results.items():
-                st = db.query(Store).filter(Store.name == store_name).first()
-                if st is None:
-                    logger.warning("Skipping unknown store '%s' for item_id=%s", store_name, item.id)
-                    continue
-                ph = PriceHistory(
-                    item_id=item.id,
-                    store_id=st.id,
-                    captured_at=datetime.utcnow(),
-                    price=data.get("price"),
-                    was_price=data.get("was_price"),
-                    unit_price=data.get("unit_price"),
-                    promo_text=data.get("promo_text"),
-                    discount_percent=data.get("discount_percent"),
-                )
-                db.add(ph)
-                count += 1
-            db.commit()
 
-        if errors:
-            return JSONResponse(
-                {
-                    "ok": False,
-                    "saved": count,
-                    "errors": errors,
-                    "message": "Scrape completed with some failures. Check server logs for details.",
-                },
-                status_code=207,
-            )
+@app.get("/scrape/status/{job_id}")
+def scrape_status(job_id: int):
+    job = get_job(job_id)
+    if not job:
+        return JSONResponse({"ok": False, "error": "not_found"}, status_code=404)
 
-        return RedirectResponse(url="/", status_code=303)
-    finally:
-        db.close()
-
+    return {
+        "ok": True,
+        "job_id": job.id,
+        "status": job.status,
+        "created_at": job.created_at.isoformat() if job.created_at else None,
+        "started_at": job.started_at.isoformat() if job.started_at else None,
+        "finished_at": job.finished_at.isoformat() if job.finished_at else None,
+        "message": job.message,
+        "store": job.store,
+    }
 
 
 

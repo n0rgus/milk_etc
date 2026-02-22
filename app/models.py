@@ -108,3 +108,14 @@ class ScrapeSettings(Base):
     debug_capture_enabled = Column(Boolean, nullable=False, default=True)
     save_storage_state = Column(Boolean, nullable=False, default=True)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ScrapeJob(Base):
+    __tablename__ = "scrape_jobs"
+    id = Column(Integer, primary_key=True)
+    status = Column(String, nullable=False, default="queued")
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    started_at = Column(DateTime, nullable=True)
+    finished_at = Column(DateTime, nullable=True)
+    message = Column(String, nullable=True)
+    store = Column(String, nullable=True)
