@@ -26,6 +26,24 @@ def _state_path(store_name: str) -> str:
     return str(STATE_DIR / f"{store_name.lower()}.json")
 
 
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in ("1", "true", "yes", "y")
+
+
+def _env_int(name: str, default: int) -> int:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+
 SELECTORS = {
     "WOOLWORTHS": {
         "price": 'div.product-price_component_price-lead__vlm8f',
@@ -118,15 +136,15 @@ def scrape_item_prices(store_links: List[Any], settings: Dict[str, Any] | None =
             by_store[sl.store.name].append(sl)
 
     settings = settings or {}
-    env_headful = os.environ.get("PRICEWATCH_HEADFUL", "0").strip().lower() in ("1", "true", "yes")
-    env_slowmo_ms = int(os.environ.get("PRICEWATCH_SLOWMO_MS", "0"))
+    env_headful = _env_bool("PRICEWATCH_HEADFUL", False)
+    env_slowmo_ms = _env_int("PRICEWATCH_SLOWMO_MS", 0)
     headful = bool(settings.get("headful", env_headful))
     try:
         slowmo_ms = max(0, int(settings.get("slowmo_ms", env_slowmo_ms) or 0))
     except (TypeError, ValueError):
         slowmo_ms = env_slowmo_ms
-    debug_capture_enabled = bool(settings.get("debug_capture_enabled", True))
-    save_storage_state = bool(settings.get("save_storage_state", True))
+    debug_capture_enabled = bool(settings.get("debug_capture_enabled", _env_bool("PRICEWATCH_DEBUG_CAPTURE", True)))
+    save_storage_state = bool(settings.get("save_storage_state", _env_bool("PRICEWATCH_SAVE_STATE", True)))
 
     with sync_playwright() as p:
         # NOTE: Coles tends to behave differently in bundled headless Chromium vs a real installed browser.

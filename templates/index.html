@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-  <form method="post" action="/scrape" class="d-flex gap-2 align-items-center">
-    <select class="form-select" style="max-width: 220px" name="store">
+  <form id="scrape-form" class="d-flex gap-2 align-items-center">
+    <select class="form-select" style="max-width: 220px" name="store" id="scrape-store">
       <option value="ALL">Scrape ALL stores</option>
       {% for s in stores %}
       <option value="{{ s.name }}">{{ s.name }}</option>
       {% endfor %}
     </select>
-    <button class="btn btn-primary" type="submit">Scrape now</button>
+    <button class="btn btn-primary" type="submit" id="scrape-submit-btn">Scrape now</button>
   </form>
+  <span id="scrape-status" class="small muted"></span>
 
   <div class="ms-auto text-end">
     <div class="small muted">
@@ -108,4 +109,81 @@
     </table>
   </div>
 </div>
+
+<script>
+(function () {
+  const formEl = document.getElementById("scrape-form");
+  const storeEl = document.getElementById("scrape-store");
+  const statusEl = document.getElementById("scrape-status");
+  const submitBtnEl = document.getElementById("scrape-submit-btn");
+
+  function setBusy(isBusy) {
+    if (!submitBtnEl || !storeEl) return;
+    submitBtnEl.disabled = isBusy;
+    storeEl.disabled = isBusy;
+  }
+
+  function setStatus(text, ok) {
+    if (!statusEl) return;
+    statusEl.textContent = text || "";
+    statusEl.className = ok ? "small text-success" : "small text-danger";
+  }
+
+  async function pollJob(jobId) {
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/scrape/status/${jobId}`);
+        const payload = await res.json();
+        if (!res.ok || !payload.ok) {
+          clearInterval(timer);
+          setBusy(false);
+          setStatus("Unable to read scrape status.", false);
+          return;
+        }
+
+        const msg = payload.message ? ` (${payload.message})` : "";
+        setStatus(`Scrape: ${payload.status}${msg}`, payload.status !== "error");
+
+        if (payload.status === "done") {
+          clearInterval(timer);
+          window.location.reload();
+        }
+        if (payload.status === "error") {
+          clearInterval(timer);
+          setBusy(false);
+        }
+      } catch (err) {
+        clearInterval(timer);
+        setBusy(false);
+        setStatus("Scrape status polling failed.", false);
+      }
+    }, 1500);
+  }
+
+  async function startScrape(event) {
+    event.preventDefault();
+    setBusy(true);
+    setStatus("Scrape queued…", true);
+
+    const body = new FormData();
+    body.append("store", (storeEl && storeEl.value) || "ALL");
+
+    try {
+      const res = await fetch("/scrape/start", { method: "POST", body });
+      const payload = await res.json();
+      if (!res.ok || !payload.ok || !payload.job_id) {
+        throw new Error("Failed to start scrape job");
+      }
+      pollJob(payload.job_id);
+    } catch (err) {
+      setBusy(false);
+      setStatus("Unable to start scrape job.", false);
+    }
+  }
+
+  if (formEl) {
+    formEl.addEventListener("submit", startScrape);
+  }
+})();
+</script>
 {% endblock %}
