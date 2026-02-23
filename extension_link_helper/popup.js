@@ -34,8 +34,26 @@ async function openSearches(stores) {
     stores
   });
 
-  if (res?.ok) setStatus("Opened search tabs. Pick a result in each store tab.", "ok");
+  if (res?.ok) setStatus("Store tabs ready. Pick results and capture/focus as needed.", "ok");
   else setStatus("Failed to start.", "warn");
+}
+
+async function captureActiveTab() {
+  const res = await chrome.runtime.sendMessage({ type: "LH_CAPTURE_ACTIVE_TAB" });
+  if (res?.ok) setStatus("Captured active tab and filled edit form.", "ok");
+  else setStatus(`Capture failed: ${res?.error || "unknown"}`, "warn");
+}
+
+async function focusOrigin() {
+  const res = await chrome.runtime.sendMessage({ type: "LH_FOCUS_ORIGIN" });
+  if (res?.ok) setStatus("Focused edit page tab.", "ok");
+  else setStatus(`Focus failed: ${res?.error || "unknown"}`, "warn");
+}
+
+async function rerunSearchActive() {
+  const res = await chrome.runtime.sendMessage({ type: "LH_RERUN_SEARCH_ACTIVE" });
+  if (res?.ok) setStatus("Re-ran search in active store tab.", "ok");
+  else setStatus(`Re-run failed: ${res?.error || "unknown"}`, "warn");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -52,4 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("openAldi").addEventListener("click", () => openSearches(["ALDI"]));
   document.getElementById("openColes").addEventListener("click", () => openSearches(["COLES"]));
   document.getElementById("openWoolies").addEventListener("click", () => openSearches(["WOOLWORTHS"]));
+  document.getElementById("captureActive").addEventListener("click", captureActiveTab);
+  document.getElementById("focusOrigin").addEventListener("click", focusOrigin);
+  document.getElementById("rerunSearch").addEventListener("click", rerunSearchActive);
 });
