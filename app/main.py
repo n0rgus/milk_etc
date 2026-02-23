@@ -32,6 +32,13 @@ from .models import (
 )
 from .jobs import enqueue_scrape_job, get_job
 from .coles_init import init_coles_session
+from .versions import (
+    API_VERSION,
+    CAPTURE_EXTENSION_VERSION,
+    CORE_UI_VERSION,
+    LINK_HELPER_EXTENSION_VERSION,
+)
+
 from .services import (
     get_latest_prices_for_items,
     compute_best_store_map,
@@ -45,7 +52,7 @@ from .services import (
 APP_TITLE = "Grocery PriceWatch"
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title=APP_TITLE)
+app = FastAPI(title=APP_TITLE, version=API_VERSION)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -57,6 +64,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "..", "templates"))
+
+templates.env.globals.update(
+    core_ui_version=CORE_UI_VERSION,
+    api_version=API_VERSION,
+    capture_extension_version=CAPTURE_EXTENSION_VERSION,
+    link_helper_extension_version=LINK_HELPER_EXTENSION_VERSION,
+)
 
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
 if os.path.isdir(static_dir):
@@ -73,6 +87,16 @@ def _startup():
         seed_from_json_if_empty(db, seed_path)
     finally:
         db.close()
+
+
+@app.get("/api/version")
+def api_version_manifest():
+    return {
+        "api_version": API_VERSION,
+        "core_ui_version": CORE_UI_VERSION,
+        "capture_extension_version": CAPTURE_EXTENSION_VERSION,
+        "link_helper_extension_version": LINK_HELPER_EXTENSION_VERSION,
+    }
 
 
 @app.get("/", response_class=HTMLResponse)

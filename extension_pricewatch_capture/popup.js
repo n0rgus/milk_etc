@@ -5,6 +5,7 @@ const modeEl = document.getElementById("mode");
 const appBaseEl = document.getElementById("appBase");
 const startStopBtn = document.getElementById("startStopBtn");
 const statusEl = document.getElementById("status");
+const versionEl = document.getElementById("version");
 
 (async function init() {
   const data = await chrome.storage.local.get(["mode", "appBase"]);
@@ -14,6 +15,10 @@ const statusEl = document.getElementById("status");
   modeEl.addEventListener("change", saveConfig);
   appBaseEl.addEventListener("change", saveConfig);
   startStopBtn.addEventListener("click", toggleRun);
+
+  if (versionEl) {
+    versionEl.textContent = `Extension v${chrome.runtime.getManifest().version}`;
+  }
 
   await refreshStatus();
 })();

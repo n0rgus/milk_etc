@@ -57,6 +57,10 @@ async function rerunSearchActive() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const versionEl = document.getElementById("version");
+  if (versionEl) {
+    versionEl.textContent = `Extension v${chrome.runtime.getManifest().version}`;
+  }
   try {
     const tab = await getActiveTab();
     if (!tab?.id) return;

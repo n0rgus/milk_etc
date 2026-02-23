@@ -1,9 +1,14 @@
 {
   "manifest_version": 3,
   "name": "PriceWatch Capture",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Captures product prices from Woolworths and Coles pages into the local PriceWatch app.",
-  "permissions": ["tabs", "scripting", "activeTab", "storage"],
+  "permissions": [
+    "tabs",
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
   "host_permissions": [
     "https://www.woolworths.com.au/*",
     "https://www.coles.com.au/*",
@@ -23,7 +28,9 @@
         "https://www.woolworths.com.au/*",
         "https://www.coles.com.au/*"
       ],
-      "js": ["content.js"],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ]
